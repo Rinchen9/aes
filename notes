@@ -1,0 +1,24 @@
+notes
+	subBytes
+		byte-by-byte substitution in forward process
+		16 x 16 lookup table to find replacement byte for a given byte in the input array
+		x-out = A * x' + c
+			c byte is 0x63
+			for each block in state box
+			1. convert to hex
+			2. lookup in s-box, use this as the replacement
+	shiftRows
+		shifting the row of the state array during the forward process
+		scramble the byte order inside each 128-bit block
+		*causes each bit of the ciphertext to rely on every bit fo the plain-text after 10 rounds
+		1. first row doesn't change
+		2. second row shifts one byte
+		3. 2 bytes
+		4. 3 bytes
+	mixColumns
+		mixing up of the bytes in each column separately during the forward process
+		further scramble up the 128-bit input block
+		*causes each bit of the ciphertext to rely on every bit fo the plain-text after 10 rounds
+		
+	addRoundKey
+		adding the round key to the output of the previous step during the forward process
