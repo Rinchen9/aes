@@ -62,7 +62,10 @@ def mix_columns(state):
     pass
 
 def add_round_key(state, roundkey):
-    pass
+    for i in range(16):
+        state[i] ^= roundkey[i]
+    # print ("roundkey: ",roundkey)
+    # print ("add_round_key: ",state)
 
 def aes_encrypt(message, key):
     state = [None]*16
@@ -76,9 +79,9 @@ def aes_encrypt(message, key):
 
     for i in range(num_rounds):
         # sub_bytes(state)
-        shift_rows(state)
+        # shift_rows(state)
         # mix_columns(state)
-        # add_round_key(state, key)
+        add_round_key(state, key)
 
     # final round
     # sub_bytes(state)
