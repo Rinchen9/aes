@@ -221,13 +221,25 @@ def fill_first_four():
     for i in range(1, 5):
         key_schedule[i-1] = cipher_key[4*(i-1):4*i]
 
+def get_file(filename):
+    input = [None]*32
+    i = 0
+    with open(filename) as f:
+        while True:
+            input_char = f.read(1)
+            if not input_char:
+                break
+            input[i] = hex(ord(input_char))
+            i = i+1
+    f.closed
+    return input
+
 def main():
     print("I am in Main")
     # message = [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
     # message = [0xd4, 0xbf, 0x5d, 0x30, 0xe0, 0xb4, 0x52, 0xae, 0xb8, 0x41, 0x11, 0xf1, 0x1e, 0x27, 0x98, 0xe5]
     # key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
-    aes_encrypt(message, key)
-
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--keysize")
     parser.add_argument("--keyfile")
@@ -236,17 +248,28 @@ def main():
     parser.add_argument("--mode")
 
     args = parser.parse_args()
-    print(args.keysize)
-    print(args.keyfile)
-    print(args.inputfile)
-    print(args.outputfile)
-    print(args.mode)
+    keysize = args.keysize
+    # print(keysize)
+    
+    keyfile = args.keyfile
+    key = get_file(keyfile)
+    # print("key: ", key)
+
+    inputfile = args.inputfile
+    input = get_file(inputfile)
+    # print("inputfile: ", input)
+
+    # print(args.outputfile)
+    # print(args.mode)
+
+
+    # aes_encrypt(message, key)    
 
 
     print("Starting")
     fill_first_four()
     # printArray(key_schedule)
-    key_expansion(cipher_key[0:4], cipher_key[4:8], cipher_key[8:12], cipher_key[12:], 0)
+    key_expansion(key[0:4], key[4:8], key[8:12], key[12:], 0)
     print("byeee")
 
 
