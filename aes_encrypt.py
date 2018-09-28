@@ -50,10 +50,10 @@ inverted_s_box = [0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0x
         0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55,
         0x21, 0x0c, 0x7d]
 
-# state_array = [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
-# cipher_key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+state = [None]*16
 rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]
 key_schedule = [None]*44
+keySchedule = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]] 
 
 #  Galouis Field multiplication look up table
 g_mul2 = [0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e,0x10,0x12,0x14,0x16,0x18,0x1a,0x1c,0x1e,
@@ -99,22 +99,13 @@ def xor(temp, w):
         arr[i] = temp[i] ^ w[i]
     return arr
 
-def printArray(arr):
-    print("Array length is " + str(len(arr)))
-    for a in arr:
-        for x in a:
-            print(hex(x))
-
 def fill_first_four(key):
-    # for i in range(16):
-    #     key[i] = hex(key[i])
     for i in range(1, 5):
         key_schedule[i-1] = key[4*(i-1):4*i]
 
 def key_expansion(orig0, orig1, orig2, orig3, round):
     global key_schedule
-    keySchedule=[[0]*4]*11
-    # print(keySchedule)
+    global keySchedule
     # Rotation
     temp0 = [orig3[1], orig3[2], orig3[3], orig3[0]]
     temp0 = get_sub_word(temp0)
@@ -124,7 +115,7 @@ def key_expansion(orig0, orig1, orig2, orig3, round):
     temp1 = xor(temp0, orig1)
     temp2 = xor(temp1, orig2)
     temp3 = xor(temp2, orig3)
-    # printArray(temp2)
+
     offset = 4*(round+1)
     key_schedule[offset] = temp0
     key_schedule[offset + 1] = temp1
@@ -133,19 +124,28 @@ def key_expansion(orig0, orig1, orig2, orig3, round):
     if(round < 9):
         key_expansion(temp0, temp1, temp2, temp3, round+1)
     else:
-        print()
-        # print("key_schedule sub: ", key_schedule[4][0])
-        # print("key_schedule type: ", type(key_schedule[4][0]))
+        i = 0
+        j = 0
         for x in key_schedule[4:]:
             for y in x:
-                keySchedule[x][y] = int(key_schedule[x][y])
-        print("key_schedule: ", keySchedule)
-        # printArray(key_schedule)
+                keySchedule[i][j]=hex(y)
+                j = j+1
+            j = 0
+            i = i+1
+    
+def get_stateHex(state):
+    stateHex = []
+    for i in state:
+        j = hex(i)
+        stateHex.append(j)
+    return stateHex
+
 
 def sub_bytes(state):
     for i in range(16):
         state[i] = hex(s_box[state[i]])
     print ("substituted state: ", state)
+    print()
 
 def shift_rows(state):
     temp = [None]*16
@@ -172,15 +172,14 @@ def shift_rows(state):
 
     for i in range(16):
         state[i] = temp[i]
-    print ("shift_rows: ",state)
+    print("shift_rows: ",state)
+    print()
 
 def mix_columns(state):
     temp = [None]*16
 
-    # print("mix_columns state: ", state)
     for i in range(16):
     	state[i] = int(state[i],0)
-    # print(type(state[0]))
 
     temp[0] = g_mul2[state[0]] ^ g_mul3[state[1]] ^ state[2] ^ state[3]
     temp[1] = state[0] ^ g_mul2[state[1]] ^ g_mul3[state[2]] ^ state[3]
@@ -204,70 +203,90 @@ def mix_columns(state):
 
     for i in range(16):
     	temp[i] = hex(temp[i])
-    # print(type(temp[0]))
 
     for i in range(16):
         state[i] = temp[i]
-    print("state type: ", type(state[0]))
     print ("mix_columns: ", state)
+    print()
 
-
-def add_round_key(state, roundkey):
-    roundKey = [None]*16
-    roundKeyHex = [None]*16
+def add_round_key_init(roundkey):
     stateCheck = [None]*16
-
-    for i in range(16):
-        roundKey[i] = int(roundkey[i])
-
-    for i in range(16):
-        roundKeyHex[i] = hex(roundkey[i])
-    print("roundKey: ", roundKeyHex)
-    # print("add_round_key state: ", state)
-
-    # print("state: ", type(state[0]))
-    # print("roundkey: ", type(roundKey[0]))
     
     for i in range(16):
-       state[i] ^= roundKey[i]
-
+       state[i] ^= roundkey[i]
     for i in range(16):
         stateCheck[i] = hex(state[i])
-    # print ("roundkey: ",roundkey)
-    print ("add_round_key: ",stateCheck)
+    print("add_round_key_init: ", stateCheck)
+    print()
+
+def add_round_key(states, roundkey):
+    # print("roundkey: ", roundkey)
+    roundkeyInt = [None]*16
+    stateInt = [None]*16
+    stateHex = [None]*16
+
+    for i in range(16):
+        stateInt[i] = int(states[i],16)
+    for i in range(16):
+        roundkeyInt[i] = int(roundkey[i],16)
+
+    for i in range(16):
+       stateInt[i] ^= roundkeyInt[i]
+
+    for i in range(16):
+        state[i] = hex(stateInt[i])
+
+    print ("add_round_key: ",state)
+    print()
+    print()
+    
+
+def get_sub_keys(key_list):
+    key = []
+    for i in key_list:
+        for j in i:
+            key.append(j)
+    return key
+
+def get_stateInt(state):
+    stateInt = []
+    for i in state:
+        if(type(i) == int):
+            return state
+        else:            
+            j = int(i,0)
+            stateInt.append(j)
+    return stateInt
 
 def aes_encrypt(message, key):
-    state = [None]*16
+    stateInt = [None]*16
     for i in range(16):
         state[i] = message[i]
-    print ("state: ", state)
 
-    num_rounds = 1
+    num_rounds = 9
     print("Starting")
+    print()
     fill_first_four(key)
     key_expansion(key[0:4], key[4:8], key[8:12], key[12:], 0)
-    # print("key: ", key)
-    add_round_key(state, key)
+    add_round_key_init(key)
 
-    for i in range(num_rounds):
-        # pass
-        sub_bytes(state)
-        shift_rows(state)
-        mix_columns(state)
-        # print("sub key_schedule: ", key_schedule[16:32])
-        # add_round_key(state, key_schedule[16:32])
+    for i in range(0,num_rounds*4,4):
+        stateInt = get_stateInt(state)
+        sub_bytes(stateInt)
+        shift_rows(stateInt)
+        mix_columns(stateInt)
+        key = get_sub_keys(keySchedule[i:i+4])
+        add_round_key(stateInt, key)
 
     # final round
-    # sub_bytes(state)
-    # shift_rows(state)
-    # add_round_key(state, key)
+    stateInt = get_stateInt(state)
+    sub_bytes(stateInt)
+    shift_rows(stateInt)
+    key = get_sub_keys(keySchedule[36:40])
+    add_round_key(stateInt, key)
+    print("End of encryption")
 
-def main():
-    print("I am in Main")
-    # message = [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
-    # message = [0xd4, 0xbf, 0x5d, 0x30, 0xe0, 0xb4, 0x52, 0xae, 0xb8, 0x41, 0x11, 0xf1, 0x1e, 0x27, 0x98, 0xe5]
-    # key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
-    
+def main():    
     parser = argparse.ArgumentParser()
     parser.add_argument("--keysize")
     parser.add_argument("--keyfile")
@@ -288,15 +307,14 @@ def main():
     # print("inputfile: ", data)
 
     # print(args.outputfile)
-    # print(args.mode)
+    # print(args.mode)   
 
-    
-
-    aes_encrypt(data, key)    
-
-
+    aes_encrypt(data, key)  
     
 
 
 if __name__ == '__main__':
     main()
+
+
+# python3 aes_encrypt.py --keysize 128 --keyfile keyfile2 --inputfile inputfile2
