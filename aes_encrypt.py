@@ -53,7 +53,18 @@ inverted_s_box = [0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0x
 state = [None]*16
 rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]
 key_schedule = None
-keySchedule = [[0,0,0,0]]*60
+keySchedule = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+            [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+            [0, 0, 0, 0]]
 
 #  Galouis Field multiplication look up table
 g_mul2 = [0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e,0x10,0x12,0x14,0x16,0x18,0x1a,0x1c,0x1e,
@@ -100,14 +111,19 @@ def xor(temp, w):
     return arr
 
 def fill_first_round(key, size):
-    if(size == 256):
+    # print("using key ", key)
+    if(size == "256"):
         num_words = 8
     else:
         num_words = 4
     max_range = num_words + 1
     
     for i in range(1, max_range):
-        key_schedule[i-1] = key[num_words*(i-1):num_words*i]
+        key_schedule[i-1] = key[4*(i-1):4*i]
+
+    # print("After fill first round")
+    # for i in key_schedule:
+    #     print(i)
 
 def key_expansion_128(orig0, orig1, orig2, orig3, round):
     global key_schedule
@@ -138,6 +154,12 @@ def key_expansion_128(orig0, orig1, orig2, orig3, round):
                 j = j+1
             j = 0
             i = i+1
+        # print("fill_first_round ")
+        # for x in key_schedule:
+        #     print(x)
+        # print("BIG S KEYSCHEDULE")
+        # for i in keySchedule:
+        #     print(i)
 
 
 def key_expansion_256(orig0, orig1, orig2, orig3, orig4, orig5, orig6, orig7, round):
@@ -145,7 +167,10 @@ def key_expansion_256(orig0, orig1, orig2, orig3, orig4, orig5, orig6, orig7, ro
     global keySchedule
     
     # Rotation
-    temp0 = [orig3[1], orig3[2], orig3[3], orig3[0]]
+    temp0 = [orig7[1], orig7[2], orig7[3], orig7[0]]
+    # print("After Rotation")
+    # for i in temp0:
+    #     print(hex(i))
     temp0 = get_sub_word(temp0)
 
     temp0[0] = temp0[0] ^ rcon[round]
@@ -154,7 +179,8 @@ def key_expansion_256(orig0, orig1, orig2, orig3, orig4, orig5, orig6, orig7, ro
     temp2 = xor(temp1, orig2)
     temp3 = xor(temp2, orig3)
     if(round < 6):
-        temp4 = xor(temp3, orig4)
+        temp4 = get_sub_word(temp3)
+        temp4 = xor(temp4, orig4)
         temp5 = xor(temp4, orig5)
         temp6 = xor(temp5, orig6)
         temp7 = xor(temp6, orig7)
@@ -179,7 +205,10 @@ def key_expansion_256(orig0, orig1, orig2, orig3, orig4, orig5, orig6, orig7, ro
                 j = j+1
             j = 0
             i = i+1
-    
+        # print("Key Schedule")
+        # for i in key_schedule:
+        #     for j in i:
+        #         print(hex(j))
 def get_stateHex(state):
     stateHex = []
     for i in state:
@@ -189,10 +218,11 @@ def get_stateHex(state):
 
 
 def sub_bytes(state):
+    # print("STATE before sub_bytes", get_stateHex(state))
     for i in range(16):
         state[i] = hex(s_box[state[i]])
-    print ("substituted state: ", state)
-    print()
+    # print ("substituted state: ", state)
+    # print()
 
 def shift_rows(state):
     temp = [None]*16
@@ -219,8 +249,8 @@ def shift_rows(state):
 
     for i in range(16):
         state[i] = temp[i]
-    print("shift_rows: ",state)
-    print()
+    # print("shift_rows: ",state)
+    # print()
 
 def mix_columns(state):
     temp = [None]*16
@@ -253,8 +283,8 @@ def mix_columns(state):
 
     for i in range(16):
         state[i] = temp[i]
-    print ("mix_columns: ", state)
-    print()
+    # print ("mix_columns: ", state)
+    # print()
 
 def add_round_key_init(roundkey):
     stateCheck = [None]*16
@@ -263,11 +293,11 @@ def add_round_key_init(roundkey):
        state[i] ^= roundkey[i]
     for i in range(16):
         stateCheck[i] = hex(state[i])
-    print("add_round_key_init: ", stateCheck)
-    print()
+    # print("add_round_key_init: ", stateCheck)
+    # print()
 
 def add_round_key(states, roundkey):
-    # print("roundkey: ", roundkey)
+    print("roundkey: ", roundkey)
     roundkeyInt = [None]*16
     stateInt = [None]*16
     stateHex = [None]*16
@@ -283,12 +313,14 @@ def add_round_key(states, roundkey):
     for i in range(16):
         state[i] = hex(stateInt[i])
 
-    print ("add_round_key: ",state)
-    print()
-    print()
+    # print("add_round_key", state)
+    # print()
+    # print()
+    return state
     
 
 def get_sub_keys(key_list):
+    # print("Key list is: ", key_list)
     key = []
     for i in key_list:
         for j in i:
@@ -307,7 +339,9 @@ def get_stateInt(state):
 
 def aes_encrypt(message, key, keysize):
     global key_schedule
-    global state
+
+    print("MESSAGE IS ", message)
+
     stateInt = [None]*16
     for i in range(16):
         state[i] = message[i]
@@ -315,18 +349,25 @@ def aes_encrypt(message, key, keysize):
     #print("Empty key schedule:")
     #for x in key_schedule:
     #    print(x)
-    num_rounds = 9
+    
     print("Starting")
     print()
-    print("KEYSIZE IS " + str(keysize))
+    
     if(keysize == str(128)):
-        key_schedule = [[00, 00, 00, 00]]*44
+        num_words = 44
+        num_rounds = 9
+        print("KEYSIZE IS 128")
+        key_schedule = [[00, 00, 00, 00]]*num_words
         fill_first_round(key, keysize)
         key_expansion_128(key[0:4], key[4:8], key[8:12], key[12:], 0)
     else:
-        key_schedule = [[00, 00, 00, 00]]*60
+        num_rounds = 13
+        num_words = 60
+        print("KEYSIZE IS 256")
+        key_schedule = [[00, 00, 00, 00]]*num_words
         fill_first_round(key, keysize)
         key_expansion_256(key[0:4], key[4:8], key[8:12], key[12:16], key[16:20], key[20:24], key[24:28], key[28:], 0)
+    
     add_round_key_init(key)
 
     for i in range(0,num_rounds*4,4):
@@ -335,17 +376,47 @@ def aes_encrypt(message, key, keysize):
         shift_rows(stateInt)
         mix_columns(stateInt)
         key = get_sub_keys(keySchedule[i:i+4])
+        # print("key for add_round_key", key)
         add_round_key(stateInt, key)
 
     # final round
     stateInt = get_stateInt(state)
     sub_bytes(stateInt)
     shift_rows(stateInt)
-    key = get_sub_keys(keySchedule[36:40])
-    add_round_key(stateInt, key)
-    print("End of encryption")
+    key = get_sub_keys(keySchedule[num_words - 8: num_words - 4])
+    finalOutput = add_round_key(stateInt, key)
+    # print("finalOutput: ", finalOutput)
+    # print("End of encryption")
+    # print()
+    # print()
+    # print()
+    # print("End of encryption")
+    return finalOutput
 
-def main():    
+def pad(data):
+    print(len(data))
+    length = len(data)
+    if(length%16 == 0):
+        newData = [None]*(length + 16)
+    else:
+        newData = [None]*(length + length%16)
+
+    newLength = len(newData)
+    for i in range(0, length):
+        newData[i] = data[i]
+    for i in range(length, len(newData)):
+        newData[i] = newLength - length
+
+    print(newData)
+    return newData
+
+def combine_result(partial_enc, result, round):
+    index = 0
+    for i in range(round, round + 16):
+        result[i] = partial_enc[index]
+        index = index + 1
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--keysize")
     parser.add_argument("--keyfile")
@@ -356,19 +427,33 @@ def main():
     args = parser.parse_args()
     keysize = args.keysize
     # print(keysize)
-    
+
     keyfile = args.keyfile
     key = open(keyfile, "rb").read()
     # print("key: ", key)
 
     inputfile = args.inputfile
     data = open(inputfile, "rb").read()
+    data = pad(data)
     # print("inputfile: ", data)
 
     # print(args.outputfile)
-    # print(args.mode)   
+    # print(args.mode)
 
-    aes_encrypt(data, key, keysize)  
+    ciphertext = [None]* len(data)
+    for i in range(0, len(data), 16):
+        combine_result(aes_encrypt(data[i:i+16], key, keysize), ciphertext, i)
+
+    print("FINAL RESULT", ciphertext)
+    output = open(args.outputfile, "wb")
+    for i in ciphertext:
+        output.write(byte(i))
+
+    return ciphertext
+    # print("ciphertext in main: ", ciphertext)
+    # print()
+    # print()
+    # print("plaintext: ", plaintext)
     
 
 
