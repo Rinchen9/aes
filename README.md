@@ -10,7 +10,6 @@ main():
 		Pads data using CMS padding with a call to pad().
 		Calls aes_encrypt with 16-byte sections of padded data until all data is encrypted.
 		Writes to outputfile.
-		
 	Decryption:
 		Reads in message to decrypt from provided input file.
 		Calls aes_decrypt with 16-byte sections of datat until all data is decrypted.
