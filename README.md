@@ -3,6 +3,7 @@ CS361 assignment
 
 Rinchen Tsering (rt24456)
 Briana Vargas (blv473)
+Jack Allison ()
 
 main():
 
