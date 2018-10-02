@@ -9,9 +9,14 @@ main():
 		Reads in message to encrypt from provided input file.
 		Pads data using CMS padding with a call to pad().
 		Calls aes_encrypt with 16-byte sections of padded data until all data is encrypted.
+		Writes to outputfile.
 		
 	Decryption:
-		TODO
+		Reads in message to decrypt from provided input file.
+		Calls aes_decrypt with 16-byte sections of datat until all data is decrypted.
+		Removes padding from decrypted data.
+		Writes to output file.
+
 
 aes_encrypt():
 	Takes in 16-byte message to encrypt, key of size either 128 or 256, size of key.
